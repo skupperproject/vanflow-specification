@@ -26,13 +26,20 @@ VanFlow messages are AMQP-formatted messages with the following characteristics
 
 The following addresses are used when transferring VanFlow messages:
 
-- **mc/sfe.all** - BEACON messages are sent via this address (multicast
-  forwarding)
-- **mc/sfe.<source-identity>** - RECORD messages are sent via this address from the
-  source that has the included identity (multicast forwarding)
-- **sfe.<source-identity>** - FLUSH messages are sent to this address.  The source-identity
+- `mc/sfe.all` - BEACON messages are sent via this address (multicast
+  forwarding.) This is the only well-known address an event collector requires
+  to participate in the VanFlow protocol. BEACON messages should contain the
+  addresses to use in order to communicate with that event source.
+- `sfe.<source-identity>` - FLUSH messages are sent to this address.  The source-identity
   is the identity of the event source to which the message is being sent
   (anycast forwarding)
+- `mc/sfe.<source-identity>` - RECORD and HEARTBEAT messages are sent via this address from the
+  source that has the included identity (multicast forwarding)
+- `mc/sfe.<source-identity>.flows` - event sources that publish FLOW records
+  will send RECORD messages containing FLOW records via this suffixed address
+  instead of the default address. This way event collectors can opt-in to
+  receiving the high volume events associated with FLOWS.
+
 
 ## Message Types
 
@@ -83,7 +90,7 @@ included in all of the updates are the RECORD_TYPE and IDENTITY attributes.
 
 | Field    | Type    | Value or Description    |
 | -------- | ------- | -------- |
-| Properties.To | str8-utf8 | mc/sfe.source-identity
+| Properties.To | str8-utf8 | The address to which the RECORD message is sent. Usually mc/sfe.source-identity.
 | Properties.Subject | str8-utf8, sym8 | RECORD
 | Body.AMQP_Value | list32 | List of map8/map32 where the key is the Attribute Code and Value is the Attribute Value.
 
