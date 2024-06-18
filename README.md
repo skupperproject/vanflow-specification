@@ -173,15 +173,15 @@ represent record types and record attribute types.
 | 32 | buildVersion | string | Build version for this record
 | 33 | linkCost | uint | Link cost associated with an inter-router link
 | 34 | direction | string | Incoming or Outgoing - attribute of an inter-router link
-| 35 | octetRate | uint | Rate of change of the OCTETS attribute as a five-second average
+| 35 | octetRate | uint | Deprecated. Rate of change of the OCTETS attribute as a five-second average
 | 36 | octetsOut | uint | Octets outbound (from the router) on a flow.
 | 37 | octetsUnacked | uint | Octets currently unacknowledged (in-flight).
 | 38 | windowClosures | uint | Number of times a flow-control window closed and traffic flow stalled on a flow.
 | 39 | windowSize | uint | The size in octets of a flow’s flow-control window.  This is the number of octets of payload that will be accepted by the router before applying back-pressure on the sender.
-| 40 | flowCountL4 | uint | The number of Layer-4 flows associated with an endpoint.
-| 41 | flowCountL7 | uint | The number of Layer-7 flows associated with a Layer-4 flow or an endpoint.
-| 42 | flowRateL4 | uint | The rate at which Layer-4 flows are created in the context of an endpoint.
-| 43 | flowRateL7 | uint | The rate at which Layer-7 flows are created in the context of a Layer-4 flow or an endpoint.
+| 40 | flowCountL4 | uint | Deprecated. The number of Layer-4 flows associated with an endpoint.
+| 41 | flowCountL7 | uint | Deprecated. The number of Layer-7 flows associated with a Layer-4 flow or an endpoint.
+| 42 | flowRateL4 | uint | Deprecated. The rate at which Layer-4 flows are created in the context of an endpoint.
+| 43 | flowRateL7 | uint | Deprecated. The rate at which Layer-7 flows are created in the context of a Layer-4 flow or an endpoint.
 | 44 | duration | uint | The number of microseconds that this record has been active.  This value is computed and generated at the event collector.
 | 45 | image | record-id | Reference to an IMAGE record.
 | 46 | group | record-id | Reference to a process group.
@@ -257,10 +257,10 @@ Furthermore, the following attributes are mandatory for every record but may not
 | destPort | Port for the listener socket
 | protocol | The protocol for the listener socket (i.e. TCP, HTTP, etc.)
 | address | The VAN address for encapsulated socket traffic
-| flowCountL4 | Number of layer-4 flows established through this listener
-| flowRateL4 | The rate of layer-4 flow establishment through this listener (in flows/sec)
-| flowCountL7 | Number of layer-7 flows through this listener
-| flowRateL7 | The rate of layer-7 flow creation through this listener
+| flowCountL4 | Deprecated. Number of layer-4 flows established through this listener
+| flowRateL4 | Deprecated. The rate of layer-4 flow establishment through this listener (in flows/sec)
+| flowCountL7 | Deprecated. Number of layer-7 flows through this listener
+| flowRateL7 | Deprecated. The rate of layer-7 flow creation through this listener
 
 ### CONNECTOR
 
@@ -271,10 +271,10 @@ Furthermore, the following attributes are mandatory for every record but may not
 | destPort | Destination port for the target workload
 | protocol | The protocol for the target workload
 | address | The VAN address for encapsulated service traffic
-| flowCountL4 | Number of layer-4 flows established to this server
-| flowRateL4 | The rate of layer-4 flow establishment
-| flowCountL7 | Number of layer-7 flows to this server
-| flowRateL7 | The rate of layer-7 flow creation to this server
+| flowCountL4 | Deprecated. Number of layer-4 flows established to this server
+| flowRateL4 | Deprecated. The rate of layer-4 flow establishment
+| flowCountL7 | Deprecated. Number of layer-7 flows to this server
+| flowRateL7 | Deprecated. The rate of layer-7 flow creation to this server
 
 ### FLOW
 
@@ -287,7 +287,7 @@ Furthermore, the following attributes are mandatory for every record but may not
 | trace | Verticle-bar separated list of routers through which this flow traveled from source to destination
 | latency | The latency in microseconds from the arrival of the first octet of client traffic to the arrival of the first octet of server traffic.  For children of CONNECTORS, this is the latency of the server process.  For children of LISTENERS, this is the latency experienced on the client side, including network-traversal (round-trip) time.
 | octets | The total count of octets of payload that have traversed this flow.
-| octetRate | The current (rolling average) rate of octets traversing the flow in octets/second
+| octetRate | Deprecated. The current (rolling average) rate of octets traversing the flow in octets/second
 | octetsOut | The total count of octets outbound from the router for this flow.  This value should be redundant with the octets count of the counterflow.
 | octetsUnacked | The current number of octets traversing this flow that have not been acknowledged by the destination.
 | windowClosures | The count of times that octetsUnacked reached the windowSize, causing a stall in traffic flow for back-pressure.
