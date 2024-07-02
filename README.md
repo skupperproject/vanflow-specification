@@ -40,7 +40,6 @@ The following addresses are used when transferring VanFlow messages:
   instead of the default address. This way event collectors can opt-in to
   receiving the high volume events associated with FLOWS.
 
-
 ## Message Types
 
 ### BEACON
@@ -358,8 +357,6 @@ VanFlow records are arranged in a hierarchical and connected structure using
 identity reference attributes.  The hierarchy is established via the PARENT
 attribute.  The following diagram illustrates the record-type hierarchy:
 
-![VanFlow Record Peer Linkage](/VanFlowPeerRelations.png)
-
 ```mermaid
 ---
 title: Record Peer Linkage
@@ -395,8 +392,6 @@ flow is a member of the hierarchy from which it was configured, via a LISTENER
 for the client-side and CONNECTOR for the server-side.  Each flow is also
 linked via a PROCESS reference to a PROCESS record.
 
-![VanFlow Layer 4 Flow Relations](/VanFlowL4Flows.png)
-
 ```mermaid
 ---
 title: Flow Linkage - Layer 4
@@ -418,14 +413,13 @@ flowchart BT;
     fC --> |counterflow| fL;
     fL -.-> |counterflow| fC;
 ```
+
 ### FLOW Linkage - Layer 7 Protocol
 
 The diagram for a layer-7 interchange is similar to the layer-4 picture except
 that there is a two-deep hierarchy of FLOW records.  Note that the lowest level
 flows (for the layer-7 protocol) have the COUNTERFLOW linkages and that the
 higher level flows (for the layer-4 protocol) have the PROCESS linkages.
-
-![VanFlow Layer 7 Flow Relations](/VanFlowL7Flows.png)
 
 ```mermaid
 ---
