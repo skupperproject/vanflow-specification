@@ -360,6 +360,26 @@ attribute.  The following diagram illustrates the record-type hierarchy:
 
 ![VanFlow Record Peer Linkage](/VanFlowPeerRelations.png)
 
+```mermaid
+---
+title: Record Peer Linkage
+---
+flowchart BT;
+    s["Site"];
+    proc["Process"] --> s;
+    ctrlr["Controller"] --> s;
+    rtr["Router"] --> s;
+    link["Link"] -->|peer| rtr;
+    link["Link"] --> rtr;
+    lst["Listener"] --> rtr;
+    cnctr["Connector"] --> rtr;
+    flow["Flow"] --> |counterflow| flow;
+    flow --> flow;
+    flow --> lst;
+    flow --> cnctr;
+    flow -.-> proc;
+```
+
 In the above diagram, any linkage that is unlabelled should be assumed to be
 PARENT.  Note that FLOW records can be children of either CONNECTOR, LISTENER,
 or other FLOW records.  A FLOW within a FLOW represents a layer-7 protocol flow
@@ -377,6 +397,27 @@ linked via a PROCESS reference to a PROCESS record.
 
 ![VanFlow Layer 4 Flow Relations](/VanFlowL4Flows.png)
 
+```mermaid
+---
+title: Flow Linkage - Layer 4
+---
+flowchart BT;
+    sL["Site"];
+    rL["Router"] -->sL;
+    Listener --> rL;
+    pL["Process"] --> sL;
+    fL["Flow"] --> Listener;
+    fL --> pL;
+    sC["Site"];
+    rC["Router"] -->sC;
+    Connector --> rC;
+    pC["Process"] --> sC;
+    fC["Flow"] --> Connector;
+    fC --> pC;
+
+    fC --> |counterflow| fL;
+    fL -.-> |counterflow| fC;
+```
 ### FLOW Linkage - Layer 7 Protocol
 
 The diagram for a layer-7 interchange is similar to the layer-4 picture except
@@ -385,6 +426,32 @@ flows (for the layer-7 protocol) have the COUNTERFLOW linkages and that the
 higher level flows (for the layer-4 protocol) have the PROCESS linkages.
 
 ![VanFlow Layer 7 Flow Relations](/VanFlowL7Flows.png)
+
+```mermaid
+---
+title: Flow Linkage - Layer 7
+---
+flowchart BT;
+    sL["Site"];
+    rL["Router"] -->sL;
+    Listener --> rL;
+    pL["Process"] --> sL;
+    fL["Flow"] --> Listener;
+    f7L["Flow"] --> fL;
+    style f7L stroke-width:5px,fill:yellow,color:black;
+    fL --> pL;
+    sC["Site"];
+    rC["Router"] -->sC;
+    Connector --> rC;
+    pC["Process"] --> sC;
+    fC["Flow"] --> Connector;
+    fC --> pC;
+    f7C["Flow"] --> fC;
+    style f7C stroke-width:5px,fill:yellow,color:black;
+
+    f7C --> |counterflow| f7L;
+    f7L -.-> |counterflow| f7C;
+```
 
 ### Collector-Inferred Linkage
 
