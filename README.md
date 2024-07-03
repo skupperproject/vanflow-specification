@@ -131,8 +131,10 @@ represent record types and record attribute types.
 | 11 | COLLECTOR | A VanFlow event collection component
 | 12 | PROCESS_GROUP | A grouping of processes
 | 13 | HOST | Host (or Kubernetes Node) on which a process runs
-| 14 | LOG | A log message issued by the router.
+| 14 | LOG | A log message issued by the router
 | 15 | ROUTER_ACCESS | A VAN router access point
+| 16  | BIFLOW_TPORT | Details of a specific transport layer protocol exchange between processes in the VAN
+| 17  | BIFLOW_APP | Details of a specific application layer protocol exchange between processes in the VAN
 
 ### Record Attributes
 
@@ -193,7 +195,17 @@ represent record types and record attribute types.
 | 52 | linkCount | uint | Counter for incoming links.
 | 53 | operStatus | string | The operational status of the object. (e.g. up, down)
 | 54 | role | string | The role of the object
-
+| 55 | upTimestamp | uint | Timestamp of last transition to oper-status up
+| 56 | downTimestamp | uint | Timestamp of last transition to oper-status down
+| 57 | downCount | uint | Number of transitions to oper-status down
+| 58 | octetsReverse | uint | Octent count in reverse direction
+| 59 | octetsRateReverse | uint | Octent rate in reverse direction
+| 60 | connector | record-id | Reference to a CONNECTOR record
+| 61 | processLatency | uint | Latency of workload measured from connector (first octet to first octet)
+| 62 | proxyHost | string | Host that the service will observe
+| 63 | proxyPort | string | Port that the service will observe
+| 64 | errorListenerSide | string | Error reported from the listener side of a biflow
+| 65 | errorConnectorSide | string | Error reported from the connector side of a biflow
 
 ## Attributes per Record Type
 
@@ -323,6 +335,16 @@ Furthermore, the following attributes are mandatory for every record but may not
 | linkCount | Number of incoming links connected to the router access
 | role | The role of the listener: inter-router or edge
 
+### BIFLOW_TPORT
+
+| Attribute | Meaning in context |
+| --------- | ------------------ |
+
+### BIFLOW_APP
+
+| Attribute | Meaning in context |
+| --------- | ------------------ |
+
 ## Record Lifecycle
 
 ### Event Source
@@ -387,8 +409,8 @@ flowchart BT;
     link["Link"] --> rtr;
     lst["Listener"] --> rtr;
     cnctr["Connector"] --> rtr;
-    flow["Flow"] --> |counterflow| flow;
-    flow --> flow;
+    cnctr["Connector"] --> proc;
+    flow["Biflow"]
     flow --> lst;
     flow --> cnctr;
     flow -.-> proc;
@@ -400,68 +422,29 @@ or other FLOW records.  A FLOW within a FLOW represents a layer-7 protocol flow
 encapsulated within a layer-4 protocol flow (e.g. HTTP within TCP, where TCP is
 the parent of HTTP).
 
-### FLOW Linkage - Layer 4 Protocol
-
-The following diagram illustrates the record structure for a layer-4 VAN
-interconnect.  The interaction between client and server is represented by a
-pair of flows that are inter-linked via their COUNTERFLOW references.  Each
-flow is a member of the hierarchy from which it was configured, via a LISTENER
-for the client-side and CONNECTOR for the server-side.  Each flow is also
-linked via a PROCESS reference to a PROCESS record.
+### BIFLOW Linkage
 
 ```mermaid
 ---
-title: Flow Linkage - Layer 4
+title: BIFLOW Linkage
 ---
 flowchart BT;
     sL["Site"];
     rL["Router"] -->sL;
     Listener --> rL;
+
     pL["Process"] --> sL;
-    fL["Flow"] --> Listener;
-    fL -.-> pL;
     sC["Site"];
     rC["Router"] -->sC;
     Connector --> rC;
+    Connector --> pC;
     pC["Process"] --> sC;
-    fC["Flow"] --> Connector;
-    fC -.-> pC;
 
-    fC --> |counterflow| fL;
-    fL -.-> |counterflow| fC;
-```
+    bf["BIFLOW_TPORT"] --> Listener;
+    bf --> |connector| Connector;
+    bf -.-> |source Host+Port| pL;
 
-### FLOW Linkage - Layer 7 Protocol
-
-The diagram for a layer-7 interchange is similar to the layer-4 picture except
-that there is a two-deep hierarchy of FLOW records.  Note that the lowest level
-flows (for the layer-7 protocol) have the COUNTERFLOW linkages and that the
-higher level flows (for the layer-4 protocol) have the PROCESS linkages.
-
-```mermaid
----
-title: Flow Linkage - Layer 7
----
-flowchart BT;
-    sL["Site"];
-    rL["Router"] -->sL;
-    Listener --> rL;
-    pL["Process"] --> sL;
-    fL["Flow"] --> Listener;
-    f7L["Flow"] --> fL;
-    style f7L stroke-width:5px,fill:yellow,color:black;
-    fL -.-> pL;
-    sC["Site"];
-    rC["Router"] -->sC;
-    Connector --> rC;
-    pC["Process"] --> sC;
-    fC["Flow"] --> Connector;
-    fC -.-> pC;
-    f7C["Flow"] --> fC;
-    style f7C stroke-width:5px,fill:yellow,color:black;
-
-    f7C --> |counterflow| f7L;
-    f7L -.-> |counterflow| f7C;
+    bfapp["BIFLOW_APP"] --> bf;
 ```
 
 ### Collector-Inferred Linkage
