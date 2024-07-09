@@ -132,6 +132,7 @@ represent record types and record attribute types.
 | 12 | PROCESS_GROUP | A grouping of processes
 | 13 | HOST | Host (or Kubernetes Node) on which a process runs
 | 14 | LOG | A log message issued by the router.
+| 15 | ROUTER_ACCESS | A VAN router access point
 
 ### Record Attributes
 
@@ -189,6 +190,10 @@ represent record types and record attribute types.
 | 49 | logText | string | The log message text.
 | 50 | sourceFile | string | Source code filename and path. Used to locate the origin of a log event (Optional based on router log configuration - used for debugging).
 | 51 | sourceLine | uint | Line number in sourceFile where log event was generated (Optional based on router log configuration - used for debugging).
+| 52 | linkCount | uint | Counter for incoming links.
+| 53 | operStatus | string | The operational status of the object. (e.g. up, down)
+| 53 | role | string | The role of the object
+
 
 ## Attributes per Record Type
 
@@ -231,10 +236,13 @@ Furthermore, the following attributes are mandatory for every record but may not
 | Attribute | Meaning in context |
 | --------- | ------------------ |
 | parent | Reference to the owning ROUTER record
-| mode | The mode of the inter-router link (i.e. inter-router, edge)
-| name | The name of the router to which this link is attached
+| mode | Deprecated. Use role instead.
+| name | The name of the link object
 | linkCost | The cost metric of the link
-| direction | The direction of establishment for the link (incoming, outgoing)
+| direction | Deprecated. Links are now outgoing only.
+| role | The role of the link connection (inter-router, edge)
+| peer | Reference to the connected ROUTER_ACCESS record
+| operStatus | The link's operational status. (up|down)
 
 ### CONTROLLER
 
@@ -307,6 +315,14 @@ Furthermore, the following attributes are mandatory for every record but may not
 | group | Reference to a PROCESS_GROUP record
 | sourceHost | The IP address on which this process is accessed
 
+### ROUTER_ACCESS
+
+| Attribute | Meaning in context |
+| --------- | ------------------ |
+| parent | Reference to the owning ROUTER record
+| linkCount | Number of incoming links connected to the router access
+| role | The role of the listener: inter-router or edge
+
 ## Record Lifecycle
 
 ### Event Source
@@ -366,7 +382,8 @@ flowchart BT;
     proc["Process"] --> s;
     ctrlr["Controller"] --> s;
     rtr["Router"] --> s;
-    link["Link"] -->|peer| rtr;
+    ra["Router Access"] --> rtr;
+    link["Link"] -->|peer| ra;
     link["Link"] --> rtr;
     lst["Listener"] --> rtr;
     cnctr["Connector"] --> rtr;
