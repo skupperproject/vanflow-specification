@@ -192,7 +192,7 @@ represent record types and record attribute types.
 | 51 | sourceLine | uint | Line number in sourceFile where log event was generated (Optional based on router log configuration - used for debugging).
 | 52 | linkCount | uint | Counter for incoming links.
 | 53 | operStatus | string | The operational status of the object. (e.g. up, down)
-| 53 | role | string | The role of the object
+| 54 | role | string | The role of the object
 
 
 ## Attributes per Record Type
