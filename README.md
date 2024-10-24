@@ -217,6 +217,8 @@ Furthermore, the following attributes are mandatory for every record but may not
 | provider | If appropriate, the provider of the cloud platform (i.e. AWS, Azure AKS, etc.)
 | platform | Description of the cloud platform (i.e. Kubernetes/version, RHEL/version, etc.)
 | namespace | If appropriate, the namespace of the cloud site, for example in a kubernetes cluster.
+| name | The name of the site.
+| version | The version of the controller running the site.
 
 ### ROUTER
 
@@ -310,6 +312,7 @@ Furthermore, the following attributes are mandatory for every record but may not
 | Attribute | Meaning in context |
 | --------- | ------------------ |
 | name | The process name.  In kubernetes, this is the pod name.
+| parent | Reference to the owning SITE record.
 | imageName | The full image name for the process, including the version tag.
 | image | Reference to an IMAGE record
 | group | Reference to a PROCESS_GROUP record
