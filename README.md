@@ -193,7 +193,17 @@ represent record types and record attribute types.
 | 52 | linkCount | uint | Counter for incoming links.
 | 53 | operStatus | string | The operational status of the object. (e.g. up, down)
 | 54 | role | string | The role of the object
-
+| 55 | upTimestamp | uint | Timestamp of last transition to oper-status up
+| 56 | downTimestamp | uint | Timestamp of last transition to oper-status down
+| 57 | downCount | uint | Number of transitions to oper-status down
+| 58 | octetsReverse | uint | Octet count in reverse direction
+| 59 | octetRateReverse | uint | Octet rate in reverse direction
+| 60 | connector | string | Reference to a CONNECTOR for a BIFLOW_TPORT
+| 61 | processLatency | uint | Latency of workload measured from connector (first octet to first octet)
+| 62 | proxyHost | string | Hostname of the proxy
+| 63 | proxyPort | string | proxy port
+| 64 | errorListenerSide | string | Listener side error
+| 65 | errorConnectorSide | string | Connector side error
 
 ## Attributes per Record Type
 
