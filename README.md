@@ -228,7 +228,7 @@ Furthermore, the following attributes are mandatory for every record but may not
 | platform | Description of the cloud platform (i.e. Kubernetes/version, RHEL/version, etc.)
 | namespace | If appropriate, the namespace of the cloud site, for example in a kubernetes cluster.
 | name | The name of the site.
-| version | The version of the controller running the site.
+| buildVersion | The version of the controller running the site.
 
 ### ROUTER
 
