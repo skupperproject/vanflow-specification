@@ -131,8 +131,10 @@ represent record types and record attribute types.
 | 11 | COLLECTOR | A VanFlow event collection component
 | 12 | PROCESS_GROUP | A grouping of processes
 | 13 | HOST | Host (or Kubernetes Node) on which a process runs
-| 14 | LOG | A log message issued by the router.
+| 14 | LOG | A log message issued by the router
 | 15 | ROUTER_ACCESS | A VAN router access point
+| 16  | BIFLOW_TPORT | Details of a specific transport layer protocol exchange between processes in the VAN
+| 17  | BIFLOW_APP | Details of a specific application layer protocol exchange between processes in the VAN
 
 ### Record Attributes
 
@@ -292,6 +294,7 @@ Furthermore, the following attributes are mandatory for every record but may not
 | destPort | Destination port for the target workload
 | protocol | The protocol for the target workload
 | address | The VAN address for encapsulated service traffic
+| process | Optional record id of the associated PROCESS record
 | flowCountL4 | Deprecated. Number of layer-4 flows established to this server
 | flowRateL4 | Deprecated. The rate of layer-4 flow establishment
 | flowCountL7 | Deprecated. Number of layer-7 flows to this server
@@ -338,6 +341,36 @@ Furthermore, the following attributes are mandatory for every record but may not
 | linkCount | Number of incoming links connected to the router access
 | role | The role of the listener: inter-router or edge
 | activeTlsOrdinal | The highest TLS ordinal used in a connection
+
+### BIFLOW_TPORT
+
+| Attribute | Meaning in context |
+| --------- | ------------------ |
+| parent | Reference to the parent LISTENER where the flow originates
+| connector | Reference to a CONNECTOR where the flow exits the network
+| trace | Verticle-bar separated list of routers through which this flow traveled from source to destination
+| sourceHost | Hostname of protocol source
+| sourcePort | Port of protocol source
+| octets | The total count of octets of payload that have traversed from listener to connector
+| latency | The latency in microseconds observed from the listener from the arrival of the first octet of client traffic to the arrival of the first octet of server traffic
+| octetsReverse | The total count of octets of payload that have traversed from connector to listener
+| latencyReverse | The latency in microseconds observed from the connector from the arrival of the first octet of client traffic to the arrival of the first octet of server traffic
+| proxyHost | Hostname of the proxy
+| proxyPort | proxy port
+| errorListenerSide | Listener side error
+| errorConnectorSide | Connector side error
+
+### BIFLOW_APP
+
+| Attribute | Meaning in context |
+| --------- | ------------------ |
+| parent | Reference to the parent BIFLOW_TPORT where the application flow was observed
+| protocol | Application protocol
+| latency | The latency in microseconds observed from the listener. For HTTP flows, this is the time to first response header.
+| method | Application protocol method
+| result | Application protocol response. For HTTP flows, this is a string containing the three digit result code number.
+| octets | The total count of octets of protocol request
+| octetsReverse | The total count of octets  in the protocol response
 
 ## Record Lifecycle
 
@@ -403,81 +436,44 @@ flowchart BT;
     link["Link"] --> rtr;
     lst["Listener"] --> rtr;
     cnctr["Connector"] --> rtr;
-    flow["Flow"] --> |counterflow| flow;
-    flow --> flow;
+    cnctr["Connector"] --> proc;
+    flow["Biflow"]
     flow --> lst;
-    flow --> cnctr;
+    flow -->|connector| cnctr;
     flow -.-> proc;
 ```
 
 In the above diagram, any linkage that is unlabelled should be assumed to be
-PARENT.  Note that FLOW records can be children of either CONNECTOR, LISTENER,
-or other FLOW records.  A FLOW within a FLOW represents a layer-7 protocol flow
-encapsulated within a layer-4 protocol flow (e.g. HTTP within TCP, where TCP is
-the parent of HTTP).
+PARENT. Linkages indicated with dotted lines represent implicit relations that
+can be inferred at the collector.
 
-### FLOW Linkage - Layer 4 Protocol
+### BIFLOW Linkage
 
-The following diagram illustrates the record structure for a layer-4 VAN
-interconnect.  The interaction between client and server is represented by a
-pair of flows that are inter-linked via their COUNTERFLOW references.  Each
-flow is a member of the hierarchy from which it was configured, via a LISTENER
-for the client-side and CONNECTOR for the server-side.  Each flow is also
-linked via a PROCESS reference to a PROCESS record.
+BIFLOW records were introduced with skupper router 3.0.0, simplifying collector
+logic that previously correlated FLOW record pairs representing application
+traffic.
 
 ```mermaid
 ---
-title: Flow Linkage - Layer 4
+title: BIFLOW Linkage
 ---
 flowchart BT;
     sL["Site"];
     rL["Router"] -->sL;
     Listener --> rL;
+
     pL["Process"] --> sL;
-    fL["Flow"] --> Listener;
-    fL -.-> pL;
     sC["Site"];
     rC["Router"] -->sC;
     Connector --> rC;
+    Connector --> |process| pC;
     pC["Process"] --> sC;
-    fC["Flow"] --> Connector;
-    fC -.-> pC;
 
-    fC --> |counterflow| fL;
-    fL -.-> |counterflow| fC;
-```
+    bf["BIFLOW_TPORT"] --> Listener;
+    bf --> |connector| Connector;
+    bf -.-> |source Host| pL;
 
-### FLOW Linkage - Layer 7 Protocol
-
-The diagram for a layer-7 interchange is similar to the layer-4 picture except
-that there is a two-deep hierarchy of FLOW records.  Note that the lowest level
-flows (for the layer-7 protocol) have the COUNTERFLOW linkages and that the
-higher level flows (for the layer-4 protocol) have the PROCESS linkages.
-
-```mermaid
----
-title: Flow Linkage - Layer 7
----
-flowchart BT;
-    sL["Site"];
-    rL["Router"] -->sL;
-    Listener --> rL;
-    pL["Process"] --> sL;
-    fL["Flow"] --> Listener;
-    f7L["Flow"] --> fL;
-    style f7L stroke-width:5px,fill:yellow,color:black;
-    fL -.-> pL;
-    sC["Site"];
-    rC["Router"] -->sC;
-    Connector --> rC;
-    pC["Process"] --> sC;
-    fC["Flow"] --> Connector;
-    fC -.-> pC;
-    f7C["Flow"] --> fC;
-    style f7C stroke-width:5px,fill:yellow,color:black;
-
-    f7C --> |counterflow| f7L;
-    f7L -.-> |counterflow| f7C;
+    bfapp["BIFLOW_APP"] --> bf;
 ```
 
 ### Collector-Inferred Linkage
@@ -488,11 +484,5 @@ the original event source and must be added later by the collector.
 FLOW to PROCESS linkages are formed by correlating the IP addresses in
 SOURCE_HOST and DESTINATION_HOST to the IP addresses (and possibly ports) of
 the PROCESS records.
-
-COUNTERFLOW linkages are provided in only one direction by the event sources.
-The connector-side flow contains a counterflow link to the listener-side flow.
-The collector should add in the opposite-direction counterflow link for the
-listener-side flow record.  This causes the flow records to mutually reference
-each other as counterflows.
 
 [amqp]: http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-complete-v1.0-os.pdf
