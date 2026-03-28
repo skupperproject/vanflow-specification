@@ -259,6 +259,7 @@ Furthermore, the following attributes are mandatory for every record but may not
 | peer | Reference to the connected ROUTER_ACCESS record
 | operStatus | The link's operational status. (up|down)
 | activeTlsOrdinal | The TLS ordinal used to establish the link connection.
+| location | The configured link name.
 
 ### CONTROLLER
 
