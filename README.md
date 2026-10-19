@@ -207,6 +207,9 @@ represent record types and record attribute types.
 | 64 | errorListenerSide | string | Listener side error
 | 65 | errorConnectorSide | string | Connector side error
 | 66 | activeTlsOrdinal | uint | The SSL Profile ordinal field that is currently in operation
+| 67 | httpProxy | string | Whether HTTP proxy mode is enabled (`yes` or `no`)
+| 68 | strategy | string | Address-selection strategy for a multi-address TCP listener: `priority` or `weighted`
+| 69 | strategyValue | uint | Address-specific priority or relative selection weight, interpreted according to `strategy`
 
 ## Attributes per Record Type
 
@@ -276,14 +279,21 @@ Furthermore, the following attributes are mandatory for every record but may not
 | Attribute | Meaning in context |
 | --------- | ------------------ |
 | parent | Reference to the owning ROUTER record
+| name | The listener name. Records for addresses of the same multi-address listener share this name.
 | destHost | Destination IP/Host for the listener socket
 | destPort | Port for the listener socket
 | protocol | The protocol for the listener socket (i.e. TCP, HTTP, etc.)
-| address | The VAN address for encapsulated socket traffic
+| address | The VAN address for encapsulated socket traffic. For a multi-address TCP listener, this is the individual address represented by this record.
+| strategy | Address-selection strategy for a multi-address TCP listener. `priority` selects the highest-priority reachable address; `weighted` randomly selects among reachable addresses in proportion to their weights. Omitted for single-address listeners.
+| strategyValue | This address's priority or relative weight. Larger priorities take precedence; weights are relative values, not percentages. Negative configured values are reported as zero. Omitted for single-address listeners.
 | flowCountL4 | Deprecated. Number of layer-4 flows established through this listener
 | flowRateL4 | Deprecated. The rate of layer-4 flow establishment through this listener (in flows/sec)
 | flowCountL7 | Deprecated. Number of layer-7 flows through this listener
 | flowRateL7 | Deprecated. The rate of layer-7 flow creation through this listener
+
+A multi-address TCP listener emits one LISTENER record per configured address.
+These records share the listener's name, but have distinct identities and
+address-specific `address` and `strategyValue` attributes.
 
 ### CONNECTOR
 
@@ -346,7 +356,7 @@ Furthermore, the following attributes are mandatory for every record but may not
 
 | Attribute | Meaning in context |
 | --------- | ------------------ |
-| parent | Reference to the parent LISTENER where the flow originates
+| parent | Reference to the LISTENER where the flow originates. For a multi-address TCP listener, this is the per-address LISTENER record for the address selected for the connection.
 | connector | Reference to a CONNECTOR where the flow exits the network
 | trace | Verticle-bar separated list of routers through which this flow traveled from source to destination
 | sourceHost | Hostname of protocol source
